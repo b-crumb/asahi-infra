@@ -1,0 +1,4 @@
+#!/bin/bash
+if [ "$(git -C asahi-scripts rev-parse --abbrev-ref HEAD)" == "main" ]; then
+	git -C asahi-scripts checkout dev-sd-asahi
+fi

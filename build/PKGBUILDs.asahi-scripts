@@ -1,0 +1,40 @@
+#!/bin/bash
+# make temp
+mkdir tmp
+# get as PKGBUILD
+cp -r PKGBUILDs/asahi-scripts tmp/asahi-scripts
+# also overwrite old PKGBUILD in our PKGBUILD
+cp PKGBUILDs/asahi-scripts/asahi-scripts.install \
+   PKGBUILDs/asahi-scripts/PKGBUILD \
+   PKGBUILDs.asahi-scripts
+# maintainer + sources
+sed '1s/.*/# Maintainer\: bcrumb \<shadow dot sandlot dot tribute at proton dot me\>/;10s/.*/source=("\${pkgname}-\${pkgver}\.tar\.gz::https:\/\/github\.com\/AsahiLinux\/\${pkgname}\/archive\/refs\/tags\/\${pkgver}\.tar\.gz" asahi-scripts\.patch)/' <<< cat PKGBUILDs.asahi-scripts/PKGBUILD > PKGBUILDs.asahi-scripts/PKGBUILD
+# add the prepare fn
+cat << EOF >> PKGBUILDs.asahi-scripts/PKGBUILD
+
+prepare() {
+  cd "\${srcdir}/\${pkgname}-\${pkgver}"
+  patch --forward --strip=1 --input="\${srcdir}/asahi-scripts.patch"
+}
+EOF
+# cd into vanilla PKGBUILD dir
+pushd tmp/asahi-scripts
+# makepkg to get src, we use conf otherwise we'd need sudo
+# files will be:
+# asahi-scripts-*.tar.xz
+# src/asahi-scripts-* -> ../asahi-scripts-*.tar.xz
+makepkg --nobuild --config ../../makepkg.conf
+# get name of unpacked
+PKG=$(find src -maxdepth 1 -type d ! -name src -printf '%P\n')
+# get OUR as repo (sd-as) and toss into src
+cp -r ../../asahi-scripts src/sd-asahi-scripts
+# remove bloat
+rm -f src/sd-asahi-scripts/README.md 
+rm -rf src/sd-asahi-scripts/.git
+# diff into patch
+diff -uraN src/$PKG src/sd-asahi-scripts > ../../PKGBUILDs.asahi-scripts/asahi-scripts.patch
+# unset name
+unset PKG
+# cleanup
+popd
+rm -rf tmp
