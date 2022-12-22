@@ -4,6 +4,7 @@
 [submodule "asahi-scripts"]
 	path = asahi-scripts
 	url = https://github.com/b-crumb/asahi-scripts
+	branch = dev-sd-asahi
 [submodule "PKGBUILDs.asahi-scripts"]
 	path = PKGBUILDs.asahi-scripts
 	url = https://github.com/b-crumb/PKGBUILDs.asahi-scripts

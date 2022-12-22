@@ -3,23 +3,20 @@ all: all-PKGBUILD
 all-PKGBUILD: PKGBUILDs.asahi-scripts
 
 PKGBUILDs.asahi-scripts: base
-	# a temporary thing until i dont merge to main
-	bash build/PKGBUILDs.asahi-scripts.temp
 	bash build/PKGBUILDs.asahi-scripts
 
 base:
 	# update repositories
-	find . -maxdepth 1 ! -path '*/.*' ! -name tmp ! -name build -type d -execdir git -C '{}' pull ';'
+	git submodule update --recursive --init --remote
 
 install:
-	# this functions like a confirm script
-	# it should prompt gpg if you are using it
 	git -C PKGBUILDs.asahi-scripts add .
-	git -C PKGBUILDs.asahi-scripts commit -sm "PKGBUILD: rebuilt package"
+	git -C PKGBUILDs.asahi-scripts commit -sm "PKGBUILD: bump to latest"
 
 reject:
 	# send it all back home
 	git -C PKGBUILDs.asahi-scripts reset --hard HEAD
+	git -C PKGBUILDs.asahi-scripts clean -fdx
 	
 
-.PHONY: all all-PKGBUILD PKGBUILDs.asahi-scripts base install reject
+.PHONY: all all-PKGBUILD PKGBUILDs.asahi-scripts base reject

@@ -2,13 +2,13 @@
 # make temp
 mkdir tmp
 # get as PKGBUILD
-cp -r PKGBUILDs/asahi-scripts tmp/asahi-scripts
+cp -rT PKGBUILDs/asahi-scripts tmp/asahi-scripts
 # also overwrite old PKGBUILD in our PKGBUILD
 cp PKGBUILDs/asahi-scripts/asahi-scripts.install \
    PKGBUILDs/asahi-scripts/PKGBUILD \
    PKGBUILDs.asahi-scripts
 # maintainer + sources
-sed '1s/.*/# Maintainer\: bcrumb \<shadow dot sandlot dot tribute at proton dot me\>/;10s/.*/source=("\${pkgname}-\${pkgver}\.tar\.gz::https:\/\/github\.com\/AsahiLinux\/\${pkgname}\/archive\/refs\/tags\/\${pkgver}\.tar\.gz" asahi-scripts\.patch)/' <<< cat PKGBUILDs.asahi-scripts/PKGBUILD > PKGBUILDs.asahi-scripts/PKGBUILD
+sed '1s/.*/# Maintainer\: bcrumb \<shadow dot sandlot dot tribute at proton dot me\>/;10s/.*/source=("\${pkgname}-\${pkgver}\.tar\.gz::https:\/\/github\.com\/AsahiLinux\/\${pkgname}\/archive\/refs\/tags\/\${pkgver}\.tar\.gz" asahi-scripts\.patch)/' <<< $(cat PKGBUILDs.asahi-scripts/PKGBUILD) > PKGBUILDs.asahi-scripts/PKGBUILD
 # add the prepare fn
 cat << EOF >> PKGBUILDs.asahi-scripts/PKGBUILD
 
@@ -27,14 +27,22 @@ makepkg --nobuild --config ../../makepkg.conf
 # get name of unpacked
 PKG=$(find src -maxdepth 1 -type d ! -name src -printf '%P\n')
 # get OUR as repo (sd-as) and toss into src
-cp -r ../../asahi-scripts src/sd-asahi-scripts
+cp -rT ../../asahi-scripts src/sd-asahi-scripts
 # remove bloat
 rm -f src/sd-asahi-scripts/README.md 
 rm -rf src/sd-asahi-scripts/.git
 # diff into patch
-diff -uraN src/$PKG src/sd-asahi-scripts > ../../PKGBUILDs.asahi-scripts/asahi-scripts.patch
-# unset name
+cd src
+diff -uraN $PKG sd-asahi-scripts > ../../../PKGBUILDs.asahi-scripts/asahi-scripts.patch
+cd ..
+# first cleanup
 unset PKG
-# cleanup
 popd
 rm -rf tmp
+# write new sums and clean folder
+cd PKGBUILDs.asahi-scripts
+git add .
+makepkg --conf ../makepkg.conf -g >> PKGBUILD
+git add PKGBUILD
+git clean -fdx
+cd ..
